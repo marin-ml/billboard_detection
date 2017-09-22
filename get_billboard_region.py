@@ -93,6 +93,7 @@ def get_billboard_corners(img_crop):
     img_crop_blur1 = cv2.medianBlur(img_crop_gray, 5)
 
     for thresh in range(30, 110, 2):
+        # print thresh
         # thresh = 40
         _, img_crop_th1 = cv2.threshold(img_crop_blur1, thresh, 255, cv2.THRESH_BINARY)
         # cv2.imshow("Image4_Threshold1", img_crop_th1)
@@ -143,7 +144,7 @@ def get_billboard_corners(img_crop):
             f_start = True
 
     cv2.imwrite('temp1/min.jpg', img_min)
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
 
     # return img_min
     return corners_min

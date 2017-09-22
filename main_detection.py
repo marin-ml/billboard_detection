@@ -48,14 +48,14 @@ def detect(img_file):
     img_final = img_color.copy()
     cv2.drawContours(img_final, final_contours, 0, (255, 255, 0), -1)
 
-    cv2.imshow('Image11_crop_mask', img_final)
-    cv2.waitKey(0)
+    # cv2.imshow('Image11_crop_mask', img_final)
+    # cv2.waitKey(0)
 
     return img_final
 
 
 if __name__ == '__main__':
-    image_file = '10.jpg'
+    image_file = '5.jpg'
     img1 = detect('image_set/' + image_file)
 
     if img1 is not None:
