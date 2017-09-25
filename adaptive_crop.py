@@ -7,6 +7,10 @@ google_ocr = GoogleAPI()
 
 def get_label_score(json_data):
     ret_score = []
+
+    if json_data is None:
+        return 0
+
     for sub_data in json_data:
         if sub_data['description'] == 'advertising':
             ret_score.append(sub_data['score'])
