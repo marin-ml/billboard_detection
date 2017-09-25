@@ -55,9 +55,9 @@ def detect(img_file):
 
 
 if __name__ == '__main__':
-    image_file = '5.jpg'
+    image_file = '6.jpg'
     img1 = detect('image_set/' + image_file)
 
     if img1 is not None:
-        cv2.imwrite('image_set/r' + image_file, img1)
+        cv2.imwrite('image_set/t' + image_file, img1)
 

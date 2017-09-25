@@ -37,7 +37,13 @@ def get_corners(points, width, height):
     min_dist3 = 10000000
     min_dist4 = 10000000
 
+    point_x = []
+    point_y = []
+
     for point in points:
+        point_x.append(point[0][0])
+        point_y.append(point[0][1])
+
         dist1 = (500 + point[0][0]) ** 2 + (500 + point[0][1]) ** 2
         if min_dist1 > dist1:
             min_dist1 = dist1
@@ -58,7 +64,39 @@ def get_corners(points, width, height):
             min_dist4 = dist4
             min_point4 = (point[0][0] - 2, point[0][1] + 2)
 
-    return [min_point1, min_point2, min_point3, min_point4]
+    corners_org = [min_point1, min_point2, min_point3, min_point4]
+    score_org = calc_corners_score(corners_org)
+    area_org = cv2.contourArea(np.array(corners_org))
+
+    return corners_org, score_org, area_org
+
+    # point_left = (point_x[np.argmin(point_x)], point_y[np.argmin(point_x)])
+    # point_right = (point_x[np.argmax(point_x)], point_y[np.argmax(point_x)])
+    # point_top = (point_x[np.argmin(point_y)], point_y[np.argmin(point_y)])
+    # point_bottom = (point_x[np.argmax(point_y)], point_y[np.argmax(point_y)])
+    #
+    # point1_candidate = [min_point1, point_left, point_top]
+    # point2_candidate = [min_point2, point_right, point_top]
+    # point3_candidate = [min_point3, point_right, point_bottom]
+    # point4_candidate = [min_point4, point_left, point_bottom]
+    #
+    # corners_candidate = []
+    # scores_candidate = []
+    # areas_candidate = []
+    # for point1 in point1_candidate:
+    #     for point2 in point2_candidate:
+    #         for point3 in point3_candidate:
+    #             for point4 in point4_candidate:
+    #                 corners_new = [point1, point2, point3, point4]
+    #                 score_new = calc_corners_score(corners_new)
+    #                 area_new = cv2.contourArea(np.array(corners_new))
+    #                 if score_new <= score_org and area_new > area_org*0.9:
+    #                     corners_candidate.append(corners_new)
+    #                     scores_candidate.append(score_new)
+    #                     areas_candidate.append(area_new)
+    #
+    # ind = np.argmin(scores_candidate)
+    # return corners_candidate[ind], scores_candidate[ind], areas_candidate[ind]
 
 
 def calc_corners_score(corners):
@@ -92,7 +130,7 @@ def get_billboard_corners(img_crop):
     img_crop_gray = cv2.cvtColor(img_crop_remove, cv2.COLOR_BGR2GRAY)
     img_crop_blur1 = cv2.medianBlur(img_crop_gray, 5)
 
-    for thresh in range(30, 110, 2):
+    for thresh in range(30, 110, 1):
         # print thresh
         # thresh = 40
         _, img_crop_th1 = cv2.threshold(img_crop_blur1, thresh, 255, cv2.THRESH_BINARY)
@@ -116,9 +154,7 @@ def get_billboard_corners(img_crop):
         # cv2.imshow("Image9_Contours_New", img_crop_contours_new)
 
         """ ------------------------------------- Get Corners ---------------------------------- """
-        corners = get_corners(points, width, height)
-        score = calc_corners_score(corners)
-        area = cv2.contourArea(np.array(corners))
+        corners, score, area = get_corners(points, width, height)
 
         for corner in corners:
             cv2.circle(img_crop_contours_new, corner, 5, (255, 0, 0), -1)
@@ -136,7 +172,7 @@ def get_billboard_corners(img_crop):
                 img_min = img_crop_contours_new.copy()
                 corners_min = corners
             else:
-                if score < score_min and area > area_start*0.8:
+                if score < score_min and area > area_start*0.75:
                     score_min = score
                     img_min = img_crop_contours_new.copy()
                     corners_min = corners
@@ -151,8 +187,8 @@ def get_billboard_corners(img_crop):
 
 
 if __name__ == '__main__':
-    # image_file = '10.jpg'
-    # img = cv2.imread('image_set/s' + image_file)
-    img = cv2.imread('temp1.jpg')
+    image_file = '1.jpg'
+    img = cv2.imread('image_set/s' + image_file)
+    # img = cv2.imread('temp1.jpg')
     img1 = get_billboard_corners(img)
     # cv2.imwrite('image_set/c' + image_file, img1)
