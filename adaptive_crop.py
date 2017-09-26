@@ -34,50 +34,12 @@ def adaptive_crop_label(img_file, scale, margin):
     dy = int(height / scale)
     temp_file = 'temp.jpg'
 
-    if score > 0.6:     # if first image is billboard
-        y1 = 0
-        y2 = height
-        x1 = 0
-        x2 = width
+    y1 = 0
+    y2 = height
+    x1 = 0
+    x2 = width
 
-        state = 0
-        f_loop = True
-
-        while f_loop:
-
-            if state == 0:
-                x1 += dx
-            elif state == 1:
-                x2 -= dx
-            elif state == 2:
-                y1 += dy
-            elif state == 3:
-                y2 -= dy
-            else:
-                break
-
-            img_new = img[y1:y2, x1:x2]
-            cv2.imwrite(temp_file, img_new)
-            json_label = google_ocr.get_google_json(temp_file, 'label')
-            score_new = get_label_score(json_label)
-            # print score_new
-
-            if score_new < score * 0.95:
-                if state == 0:
-                    x1 -= margin*dx
-                elif state == 1:
-                    x2 += margin*dx
-                elif state == 2:
-                    y1 -= margin*dy
-                elif state == 3:
-                    y2 += margin*dy
-
-                state += 1
-
-        return [max(x1-dx, 0), max(y1-dy, 0), min(width, x2+dx), min(height, y2)], score_new
-
-    else:       # if first image isn't billboard
-
+    if score < 0.6:     # if first image isn't billboard
         win_size = 8
         max_score = 0
         for i in range(0, scale-win_size, 2):
@@ -92,9 +54,48 @@ def adaptive_crop_label(img_file, scale, margin):
                     max_rect = [j*dx, i*dy, (j+win_size)*dx, (i+win_size)*dy]
 
         if max_score > 0.8:
-            return max_rect, max_score
+            [x1, y1, x2, y2] = max_rect
+            dx = int(float(x2-x1) / scale)
+            dy = int(float(y2-y1) / scale)
+            score = max_score
         else:
             return None, max_score
+
+    state = 0
+    f_loop = True
+
+    while f_loop:
+
+        if state == 0:
+            x1 += dx
+        elif state == 1:
+            x2 -= dx
+        elif state == 2:
+            y1 += dy
+        elif state == 3:
+            y2 -= dy
+        else:
+            break
+
+        img_new = img[y1:y2, x1:x2]
+        cv2.imwrite(temp_file, img_new)
+        json_label = google_ocr.get_google_json(temp_file, 'label')
+        score_new = get_label_score(json_label)
+        # print score_new
+
+        if score_new < score * 0.95:
+            if state == 0:
+                x1 -= margin * dx
+            elif state == 1:
+                x2 += margin * dx
+            elif state == 2:
+                y1 -= margin * dy
+            elif state == 3:
+                y2 += margin * dy
+
+            state += 1
+
+    return [max(x1 - dx, 0), max(y1 - dy, 0), min(width, x2 + dx), min(height, y2)], score
 
 
 def adaptive_crop_text(img_file, margin):

@@ -106,11 +106,22 @@ def calc_corners_score(corners):
                        corners[3][0] - corners[0][0]])
     ang = ang * 180 / np.pi
 
-    for i in range(4):
-        if ang[i] < 0:
-            ang[i] += 180
+    ang1 = abs(ang[0] - ang[2])
+    ang2 = abs(ang[1] - ang[3])
 
-    return min((ang[0] - ang[2]), 180 - (ang[0] - ang[2])) ** 2 + min((ang[1] - ang[3]), 180 - (ang[1] - ang[3])) **2
+    if ang1 > 90:
+        ang1 = 180 - ang1
+
+    if ang2 > 90:
+        ang2 = 180 - ang2
+
+    score = ang1**2+ang2**2
+    # for i in range(4):
+    #     if ang[i] < 0:
+    #         ang[i] += 180
+    #
+    # score = min((ang[0] - ang[2]), 180 - (ang[0] - ang[2])) ** 2 + min((ang[1] - ang[3]), 180 - (ang[1] - ang[3])) **2
+    return score
 
 def get_billboard_corners(img_crop):
 
@@ -172,7 +183,7 @@ def get_billboard_corners(img_crop):
                 img_min = img_crop_contours_new.copy()
                 corners_min = corners
             else:
-                if score < score_min and area > area_start*0.75:
+                if score < score_min and area > area_start*0.7:    #0.6
                     score_min = score
                     img_min = img_crop_contours_new.copy()
                     corners_min = corners
