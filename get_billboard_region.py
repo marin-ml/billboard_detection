@@ -70,35 +70,6 @@ def get_corners(points, width, height):
 
     return corners_org, score_org, area_org
 
-    # point_left = (point_x[np.argmin(point_x)], point_y[np.argmin(point_x)])
-    # point_right = (point_x[np.argmax(point_x)], point_y[np.argmax(point_x)])
-    # point_top = (point_x[np.argmin(point_y)], point_y[np.argmin(point_y)])
-    # point_bottom = (point_x[np.argmax(point_y)], point_y[np.argmax(point_y)])
-    #
-    # point1_candidate = [min_point1, point_left, point_top]
-    # point2_candidate = [min_point2, point_right, point_top]
-    # point3_candidate = [min_point3, point_right, point_bottom]
-    # point4_candidate = [min_point4, point_left, point_bottom]
-    #
-    # corners_candidate = []
-    # scores_candidate = []
-    # areas_candidate = []
-    # for point1 in point1_candidate:
-    #     for point2 in point2_candidate:
-    #         for point3 in point3_candidate:
-    #             for point4 in point4_candidate:
-    #                 corners_new = [point1, point2, point3, point4]
-    #                 score_new = calc_corners_score(corners_new)
-    #                 area_new = cv2.contourArea(np.array(corners_new))
-    #                 if score_new <= score_org and area_new > area_org*0.9:
-    #                     corners_candidate.append(corners_new)
-    #                     scores_candidate.append(score_new)
-    #                     areas_candidate.append(area_new)
-    #
-    # ind = np.argmin(scores_candidate)
-    # return corners_candidate[ind], scores_candidate[ind], areas_candidate[ind]
-
-
 def calc_corners_score(corners):
     ang = np.arctan2([corners[0][1] - corners[1][1], corners[1][1] - corners[2][1], corners[2][1] - corners[3][1],
                        corners[3][1] - corners[0][1]],
@@ -116,12 +87,27 @@ def calc_corners_score(corners):
         ang2 = 180 - ang2
 
     score = ang1**2+ang2**2
-    # for i in range(4):
-    #     if ang[i] < 0:
-    #         ang[i] += 180
-    #
-    # score = min((ang[0] - ang[2]), 180 - (ang[0] - ang[2])) ** 2 + min((ang[1] - ang[3]), 180 - (ang[1] - ang[3])) **2
+
     return score
+
+def aug_corners(corners):
+    ang = np.arctan2([corners[1][1] - corners[2][1], corners[3][1] - corners[0][1]],
+                      [corners[1][0] - corners[2][0], corners[3][0] - corners[0][0]])
+    ang = ang * 180 / np.pi
+
+    if abs(abs(ang[1]) - 90) > 4:
+        nc0 = (corners[3][0], corners[0][1] + int(float(corners[3][0] - corners[0][0]) /
+                                                  (corners[1][0] - corners[0][0]) * (corners[1][1] - corners[0][1])))
+    else:
+        nc0 = corners[0]
+
+    if abs(abs(ang[0]) - 90) > 4:
+        nc2 = (corners[1][0], corners[3][1] + int(float(corners[1][0] - corners[3][0]) /
+                                                  (corners[2][0] - corners[3][0]) * (corners[2][1] - corners[3][1])))
+    else:
+        nc2 = corners[2]
+
+    return [nc0, corners[1], nc2, corners[3]]
 
 def get_billboard_corners(img_crop):
 
@@ -190,11 +176,16 @@ def get_billboard_corners(img_crop):
 
             f_start = True
 
+    """ ---------------------------------- Augmentation of Corner ------------------------------ """
+    corners_aug = aug_corners(corners_min)
+    for corner in corners_aug:
+        cv2.circle(img_min, corner, 5, (0, 0, 255), -1)
+
     cv2.imwrite('temp1/min.jpg', img_min)
     # cv2.waitKey(0)
 
     # return img_min
-    return corners_min
+    return corners_aug
 
 
 if __name__ == '__main__':
