@@ -85,17 +85,17 @@ def adaptive_crop_label(img_file, scale, margin):
 
         if score_new < score * 0.95:
             if state == 0:
-                x1 -= margin * dx
+                x1 = max(x1 - margin * dx, 0)
             elif state == 1:
-                x2 += margin * dx
+                x2 = min(x2 + margin * dx, width)
             elif state == 2:
-                y1 -= margin * dy
+                y1 = max(y1 - margin * dy, 0)
             elif state == 3:
-                y2 += margin * dy
+                y2 = min(y2 + margin * dy, height)
 
             state += 1
 
-    return [max(x1 - dx, 0), max(y1 - dy, 0), min(width, x2 + dx), min(height, y2)], score
+    return [max(x1 - 2*dx, 0), max(y1 - dy, 0), min(width, x2 + dx), min(height, y2)], score
 
 
 def adaptive_crop_text(img_file, margin):
@@ -161,7 +161,7 @@ def adaptive_crop_text(img_file, margin):
         score = get_label_score(json_label)
         # print score
 
-    if score < 0.92:
+    if score < 0.92 or nx2 - nx1 > 500 or ny2 - ny1 >500:
         return None, None, None
     else:
         return score, [nx1, ny1, nx2, ny2], [x1, y1, x2, y2]
